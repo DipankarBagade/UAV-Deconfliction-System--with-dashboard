@@ -1,0 +1,39 @@
+# FlytBase-style configuration
+system:
+  name: "UAV Strategic Deconfliction System"
+  version: "1.0.0"
+  
+airspace:
+  # Airspace dimensions (meters)
+  x_min: 0
+  x_max: 10000
+  y_min: 0
+  y_max: 10000
+  z_min: 0
+  z_max: 500
+  
+safety:
+  # Safety buffer (meters) - FlytBase standard
+  min_separation: 10.0
+  warning_distance: 15.0
+  critical_distance: 5.0
+  
+simulation:
+  # Number of drones to simulate
+  num_drones: 5000
+  # Simulation time window (seconds)
+  duration: 3600
+  # Update frequency (Hz)
+  update_rate: 10
+  
+performance:
+  # Spatial indexing
+  rtree_page_size: 100
+  kdtree_leaf_size: 40
+  # Caching
+  cache_ttl: 300
+  
+api:
+  host: "0.0.0.0"
+  port: 8000
+  cors_origins: ["*"]

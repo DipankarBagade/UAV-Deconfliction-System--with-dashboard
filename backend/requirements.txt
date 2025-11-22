@@ -1,0 +1,31 @@
+# Core dependencies (Python 3.13 compatible)
+numpy>=1.26.0
+scipy>=1.14.0
+pandas>=2.2.0
+
+# Spatial indexing
+Shapely>=2.0.0
+
+# API framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.10.0
+
+# WebSocket support
+python-socketio>=5.11.0
+websockets>=13.0
+
+# Caching
+redis>=5.2.0
+
+# Visualization
+matplotlib>=3.9.0
+plotly>=5.24.0
+
+# Testing
+pytest>=8.3.0
+pytest-asyncio>=0.24.0
+
+# Utilities
+python-dotenv>=1.0.0
+PyYAML>=6.0.0
