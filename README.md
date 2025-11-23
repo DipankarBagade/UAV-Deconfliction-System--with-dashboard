@@ -1,6 +1,6 @@
 # UAV Strategic Deconfliction System
 
-A high-performance, FlytBase-style strategic deconfliction service for UAV (drone) operations. This system enables pre-flight clearance by detecting potential conflicts between planned missions and existing airspace traffic through 4D spatiotemporal analysis.
+A high-performance, strategic deconfliction service for UAV (drone) operations. This system enables pre-flight clearance by detecting potential conflicts between planned missions and existing airspace traffic through 4D spatiotemporal analysis.
 
 ## 🚀 Features
 
@@ -33,7 +33,7 @@ A high-performance, FlytBase-style strategic deconfliction service for UAV (dron
 
 ## 🏗️ Architecture
 
-The system follows a modular architecture inspired by FlytBase's deconfliction approach:
+The system follows a modular architecture:
 
 ```
 uav-deconfliction-system/
