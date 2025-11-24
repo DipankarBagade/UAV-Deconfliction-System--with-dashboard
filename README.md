@@ -18,19 +18,27 @@ A high-performance, FlytBase-style strategic deconfliction service for UAV (dron
 The system follows a modular architecture inspired by FlytBase's deconfliction approach:
 
 ```
-backend/
-├── api/           # FastAPI REST service
-├── core/          # Core conflict detection engine
-│   ├── models.py          # Data models (Mission, Conflict, etc.)
-│   ├── conflict_detector.py # 4D conflict detection logic
-│   └── spatial_index.py   # Hybrid spatial indexing
-├── simulation/    # Drone trajectory generation
-├── utils/         # Configuration and utilities
-└── dashboard.py   # Streamlit visualization interface
-
-tests/             # Comprehensive test suite
-docs/              # Documentation
-data/              # Sample data and scenarios
+uav-deconfliction-system/
+├── backend/
+│   ├── core/                      # Core algorithms
+│   │   ├── models.py              # Data models
+│   │   ├── spatial_index.py      # Grid + KD-tree
+│   │   └── conflict_detector.py  # 4D detection
+│   ├── api/                       # REST API
+│   │   └── main.py               # FastAPI endpoints
+│   ├── simulation/                # Drone simulation
+│   │   └── drone_generator.py    # Trajectory generation
+│   ├── dashboard.py               # Streamlit UI
+│   ├── requirements.txt           # Dependencies
+│   └── config.yaml               # Configuration
+├── tests/                         # Test suite
+│   ├── test_conflict_detection.py
+│   └── test_performance.py
+├── docs/                          # Documentation
+│   ├── DESIGN_NOTES.md           # Architecture details
+│   ├── FAILURE_MODES.md          # Failure analysis
+│   └── RUNBOOK.md                # Operations guide
+├── README.md                      # This file
 ```
 
 ### Core Components
@@ -39,6 +47,96 @@ data/              # Sample data and scenarios
 - **Spatial Index**: Hybrid grid-based broad phase + KD-tree precise checking
 - **Trajectory Engine**: Interpolates smooth 4D trajectories from waypoints
 - **Simulation Generator**: Creates realistic drone traffic patterns for testing
+
+## 📋 Design Notes
+
+### Architecture Changes
+
+The system follows a modular, FlytBase-inspired architecture designed for scalability and maintainability:
+
+- **Modular Design**: Core components (models, conflict detection, spatial indexing) are decoupled from API and simulation layers
+- **Hybrid Spatial Indexing**: Two-stage approach (grid broad-phase + KD-tree narrow-phase) enables efficient conflict detection for 5000+ drones
+- **4D Trajectory Handling**: Time-aware conflict detection considers both spatial separation and temporal overlap
+- **Configurable Safety**: Adjustable safety buffers and severity levels support different operational requirements
+- **RESTful API**: FastAPI-based service with automatic OpenAPI documentation and CORS support
+- **Interactive Dashboard**: Streamlit-based visualization for mission planning and 3D trajectory display
+
+**Key Architectural Decisions:**
+- **Spatial Partitioning**: 100m grid cells for broad-phase filtering, reducing computational complexity from O(n²) to O(n)
+- **Trajectory Sampling**: 1-second sampling rate balances accuracy with performance
+- **Conflict Deduplication**: Removes redundant conflicts within 5-second windows
+- **Memory Management**: NumPy arrays for efficient numerical computations
+
+### Failure Modes
+
+The system is designed to handle various failure scenarios gracefully:
+
+- **System Not Initialized**: API returns 503 error if `/api/v1/initialize` hasn't been called
+- **High Load Degradation**: Performance degrades linearly with drone count; monitor execution times
+- **Spatial Index Failures**: Grid/KD-tree corruption could cause false negatives; restart recommended
+- **Trajectory Interpolation Errors**: Invalid waypoints may cause NaN values; validate input data
+- **Memory Exhaustion**: Large airspace or high drone density may exceed memory limits
+- **Network Timeouts**: Long-running conflict checks (>30s) may timeout; increase client timeouts
+- **Configuration Errors**: Invalid YAML config may prevent startup; validate on load
+
+**Monitoring Points:**
+- Conflict detection execution time per mission
+- Spatial index statistics (occupied cells, average drones per cell)
+- Memory usage during initialization and peak load
+- API response times and error rates
+
+### Operational Runbook
+
+#### Startup Procedure
+
+1. **Environment Setup**:
+   ```bash
+   cd backend
+   python -m venv venv
+   source venv/bin/activate  # Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+2. **Configuration**:
+   - Edit `backend/config.yaml` for airspace dimensions and safety parameters
+   - Verify Python 3.13+ and required dependencies
+
+3. **System Initialization**:
+   ```bash
+   # Start API server
+   python api/main.py
+
+   # In another terminal, initialize system
+   curl -X POST "http://localhost:8000/api/v1/initialize" \
+        -H "Content-Type: application/json" \
+        -d '{"num_drones": 5000, "airspace_x": 10000, "airspace_y": 10000, "airspace_z": 500}'
+   ```
+
+4. **Verification**:
+   - Check `/health` endpoint returns healthy status
+   - Verify `/api/v1/status` shows initialized state
+   - Test with sample mission via `/api/v1/check_mission`
+
+#### Monitoring & Maintenance
+
+- **Health Checks**: Monitor `/health` and `/api/v1/status` endpoints
+- **Performance Metrics**: Track execution times in API logs
+- **Log Analysis**: Check for error patterns in stdout/stderr
+- **Resource Usage**: Monitor CPU/memory during peak loads
+
+#### Troubleshooting
+
+- **Slow Performance**: Reduce `num_drones` or increase `sampling_rate` in config
+- **Memory Issues**: Decrease airspace size or optimize grid cell size
+- **False Conflicts**: Adjust `safety_buffer` and `critical_distance` parameters
+- **API Errors**: Check system initialization status and input validation
+
+#### Scaling Guidelines
+
+- **Horizontal Scaling**: Deploy multiple instances behind load balancer
+- **Vertical Scaling**: Increase CPU cores for parallel conflict detection
+- **Data Partitioning**: Split large airspaces into regions
+- **Caching**: Cache spatial indexes for frequently used airspace configurations
 
 ## 📋 Requirements
 
